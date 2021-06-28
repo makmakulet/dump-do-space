@@ -1,6 +1,7 @@
 #! /bin/bash
 
-FILE=./script.conf
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+FILE=$SCRIPTPATH/script.conf
 if [ ! -f "$FILE" ]; then
     printf '%s\n' "Unable to locate configuration file." >&2 
     exit 1
@@ -31,7 +32,7 @@ EOL
 }
 
 #load config
-. ./script.conf
+. $FILE
 
 BASE_PATH=$(pwd)
 LOCAL_BIN="$BASE_PATH/bin"
