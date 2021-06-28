@@ -20,7 +20,7 @@ function generateS3CmdConfig () {
    touch $LOCAL_BIN/.s3cfg
 
    cat > $LOCAL_BIN/.s3cfg << EOL
-[default]
+[default]mc-
 access_key = ${DO_ACCESS_KEY}
 secret_key = ${DO_SECRET_KEY}
 host_base = ${DO_ENDPOINT}
@@ -29,6 +29,11 @@ enable_multipart = True
 multipart_chunk_size_mb = 15
 use_https = True
 EOL
+}
+
+function sendTelegramAlert () {
+    msg="Dump file uploaded to digital ocean space. ${FILE_NAME}"
+    curl -s -F chat_id=${TG_CHAT_ID} -F text="$msg" https://api.telegram.org/bot${TG_TOKEN}/sendMessage > /dev/null
 }
 
 #load config
@@ -42,6 +47,7 @@ FILE_NAME="${TIMESTAMP}-${DB_NAME}.sql"
 DUMP_FILE="${TMPDIR}/${FILE_NAME}"
 
 
+
 # s3cmd config
 if ! command -v s3cmd &> /dev/null
 then
@@ -53,11 +59,18 @@ then
    fi
 fi
 
-# execute mysqldump
+execute mysqldump
 if ! command -v mysqldump &> /dev/null
 then
     printf '%s\n' "Unable to locate mysqldump command, make sure that mysql client dependencies are installed on your system." >&2 
     exit 2
 fi
 mysqldump -u${DB_USER} -h${DB_HOST} -p${DB_PASS} ${DB_NAME} > $DUMP_FILE
+
+# upload to digital ocean space
 ${LOCAL_BIN}/s3cmd -c $LOCAL_BIN/.s3cfg put ${DUMP_FILE} s3://${DO_BUCKET}/${UPLOAD_PATH}/${FILE_NAME}
+
+# send telegram alert
+if [ $ENABLE_TG_ALERT = true ]; then
+    sendTelegramAlert
+fi
