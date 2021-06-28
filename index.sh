@@ -1,7 +1,7 @@
 #! /bin/bash
 
-SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-FILE=$SCRIPTPATH/script.conf
+BASE_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+FILE=$BASE_PATH/script.conf
 if [ ! -f "$FILE" ]; then
     printf '%s\n' "Unable to locate configuration file." >&2 
     exit 1
@@ -34,7 +34,6 @@ EOL
 #load config
 . $FILE
 
-BASE_PATH=$(pwd)
 LOCAL_BIN="$BASE_PATH/bin"
 DUMP_PATH=$TMPDIR
 TIMESTAMP=$(date +%s)
